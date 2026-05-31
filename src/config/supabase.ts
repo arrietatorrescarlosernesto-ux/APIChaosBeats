@@ -11,7 +11,7 @@ if (!(globalThis as unknown as { WebSocket?: unknown }).WebSocket) {
 export const supabaseAdmin = createClient(
   env.SUPABASE_URL,
   env.SUPABASE_SERVICE_ROLE_KEY,
-  { auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: WebSocket } },
+  { auth: { persistSession: false, autoRefreshToken: false } },
 );
 
 // Cliente con el contexto del usuario: RESPETA RLS.
@@ -19,7 +19,6 @@ export const supabaseAdmin = createClient(
 export function supabaseForUser(accessToken: string) {
   return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
-    realtime: { transport: WebSocket },
     global: { headers: { Authorization: `Bearer ${accessToken}` } },
   });
 }
