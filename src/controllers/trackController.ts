@@ -7,6 +7,7 @@ const listQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().trim().min(1).optional(),
+  sort: z.enum(["popular"]).optional(),
 });
 
 const adminListQuery = listQuery.extend({
@@ -15,8 +16,8 @@ const adminListQuery = listQuery.extend({
 
 export async function list(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { page, limit, search } = listQuery.parse(req.query);
-    res.json(await trackService.listTracks({ page, limit, search }));
+    const { page, limit, search, sort } = listQuery.parse(req.query);
+    res.json(await trackService.listTracks({ page, limit, search, sort }));
   } catch (err) {
     next(err);
   }
@@ -134,6 +135,23 @@ export async function publish(req: Request, res: Response, next: NextFunction): 
       return;
     }
     res.json(track);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function play(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.user?.id) {
+      res.status(401).json({ error: "Falta autenticación" });
+      return;
+    }
+    const playCount = await trackService.incrementPlayCount(req.params.id);
+    if (playCount === null) {
+      res.status(404).json({ error: "Canción no disponible" });
+      return;
+    }
+    res.json({ play_count: playCount });
   } catch (err) {
     next(err);
   }

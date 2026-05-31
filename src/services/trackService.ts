@@ -7,14 +7,16 @@ const SONG_COLUMNS =
   "id,title,album,artist_id,genre,duration_seconds,audio_url,cover_url,lyrics,is_explicit,play_count,download_count,is_offline_available,status,is_published,metadata,created_by,created_at,updated_at";
 
 type PublishedStatus = "published" | "draft" | "all";
+type TrackSort = "popular";
 
 async function listTracksByStatus(opts: {
   page: number;
   limit: number;
   search?: string;
   status: PublishedStatus;
+  sort?: TrackSort;
 }): Promise<Paginated<Track>> {
-  const { page, limit, search, status } = opts;
+  const { page, limit, search, status, sort } = opts;
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
@@ -26,9 +28,13 @@ async function listTracksByStatus(opts: {
 
   if (search) query = query.ilike("title", `%${search}%`);
 
-  const { data, error, count } = await query
-    .order("created_at", { ascending: false })
-    .range(from, to);
+  if (sort === "popular") {
+    query = query.order("play_count", { ascending: false }).order("created_at", { ascending: false });
+  } else {
+    query = query.order("created_at", { ascending: false });
+  }
+
+  const { data, error, count } = await query.range(from, to);
 
   if (error) throw error;
   return { data: (data ?? []) as unknown as Track[], page, limit, total: count ?? 0 };
@@ -38,6 +44,7 @@ export async function listTracks(opts: {
   page: number;
   limit: number;
   search?: string;
+  sort?: TrackSort;
 }): Promise<Paginated<Track>> {
   return listTracksByStatus({ ...opts, status: "published" });
 }
@@ -113,4 +120,37 @@ export async function publishTrack(id: string): Promise<Track | null> {
     .maybeSingle();
   if (error) throw error;
   return (data as unknown as Track) ?? null;
+}
+
+export async function incrementPlayCount(id: string): Promise<number | null> {
+  const { data: existing, error: existingError } = await supabaseAdmin
+    .from("songs")
+    .select("id,is_published,play_count")
+    .eq("id", id)
+    .maybeSingle();
+  if (existingError) throw existingError;
+  if (!existing || !existing.is_published) return null;
+
+  let current = (existing.play_count ?? 0) as number;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const { data, error } = await supabaseAdmin
+      .from("songs")
+      .update({ play_count: current + 1 })
+      .eq("id", id)
+      .eq("play_count", current)
+      .select("play_count")
+      .maybeSingle();
+    if (error) throw error;
+    if (data?.play_count !== undefined && data?.play_count !== null) return data.play_count as number;
+
+    const { data: refreshed, error: refreshedError } = await supabaseAdmin
+      .from("songs")
+      .select("play_count")
+      .eq("id", id)
+      .maybeSingle();
+    if (refreshedError) throw refreshedError;
+    current = ((refreshed?.play_count ?? current) as number) ?? current;
+  }
+
+  throw new Error("No se pudo incrementar play_count por contención concurrente");
 }

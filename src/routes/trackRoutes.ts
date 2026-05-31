@@ -9,6 +9,7 @@ trackRoutes.get("/", tracks.list);
 trackRoutes.get("/:id", tracks.getById);
 trackRoutes.get("/:id/stream", tracks.stream);
 trackRoutes.get("/:id/download", tracks.download);
+trackRoutes.post("/:id/play", requireAuth, tracks.play);
 
 // --- Administración (subida de música) ---
 trackRoutes.post("/", requireAuth, requireAdmin, tracks.create);

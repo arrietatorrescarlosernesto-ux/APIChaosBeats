@@ -10,6 +10,7 @@
     "dev:debug": "ts-node-dev --respawn --inspect=9229 src/server.ts",
     "token": "node -r ts-node/register/transpile-only scripts/get-token.ts",
     "e2e": "node -r ts-node/register/transpile-only scripts/e2e.ts",
+    "bulk-upload": "node -r ts-node/register/transpile-only scripts/bulk-upload.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit"
