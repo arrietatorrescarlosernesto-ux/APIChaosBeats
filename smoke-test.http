@@ -1,0 +1,57 @@
+@baseUrl = http://localhost:3000
+@adminToken = PEGA_AQUI_TU_JWT_DE_SUPABASE
+
+### Health
+GET {{baseUrl}}/health
+
+### Público: listar (solo publicados)
+GET {{baseUrl}}/api/tracks?page=1&limit=20&search=
+
+### Admin: listar drafts (default)
+GET {{baseUrl}}/api/admin/tracks?page=1&limit=20&search=
+Authorization: Bearer {{adminToken}}
+
+### Admin: listar todos (published + draft)
+GET {{baseUrl}}/api/admin/tracks?page=1&limit=20&search=&status=all
+Authorization: Bearer {{adminToken}}
+
+### Admin: crear track (devuelve uploadUrl)
+# @name createTrack
+POST {{baseUrl}}/api/tracks
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Smoke Test Track",
+  "contentType": "audio/mpeg"
+}
+
+### Admin: subir archivo directo a R2 (PUT a la uploadUrl)
+# Reemplaza ./sample.mp3 por la ruta a tu archivo local.
+# IMPORTANTE: este Content-Type DEBE coincidir con el que se usó para firmar (arriba: "audio/mpeg"),
+# o R2 puede responder SignatureDoesNotMatch.
+PUT {{createTrack.response.body.$.uploadUrl}}
+Content-Type: audio/mpeg
+
+< ./sample.mp3
+
+### Admin: publicar (ya queda visible en endpoints públicos)
+POST {{baseUrl}}/api/tracks/{{createTrack.response.body.$.track.id}}/publish
+Authorization: Bearer {{adminToken}}
+
+### Público: detalle (solo publicados)
+GET {{baseUrl}}/api/tracks/{{createTrack.response.body.$.track.id}}
+
+### Público: stream (302 -> URL firmada)
+GET {{baseUrl}}/api/tracks/{{createTrack.response.body.$.track.id}}/stream
+
+### Público: download (302 -> URL firmada attachment)
+GET {{baseUrl}}/api/tracks/{{createTrack.response.body.$.track.id}}/download
+
+### Admin: detalle (incluye borradores)
+GET {{baseUrl}}/api/admin/tracks/{{createTrack.response.body.$.track.id}}
+Authorization: Bearer {{adminToken}}
+
+### Admin: stream preview (incluye borradores)
+GET {{baseUrl}}/api/admin/tracks/{{createTrack.response.body.$.track.id}}/stream
+Authorization: Bearer {{adminToken}}
