@@ -6,6 +6,7 @@ import { adminTrackRoutes } from "./routes/adminTrackRoutes";
 import { artistRoutes } from "./routes/artistRoutes";
 import { playlistRoutes } from "./routes/playlistRoutes";
 import { favoriteRoutes } from "./routes/favoriteRoutes";
+import { offlineRoutes } from "./routes/offlineRoutes";
 
 export const app = express();
 app.use(cors());
@@ -20,6 +21,7 @@ app.use("/api/admin/tracks", adminTrackRoutes);
 app.use("/api/artists", artistRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/favorites", favoriteRoutes);
+app.use("/api/offline", offlineRoutes);
 
 // Manejo de errores centralizado.
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
