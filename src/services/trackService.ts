@@ -23,7 +23,9 @@ async function listTracksByStatus(opts: {
   // count "estimated": evita el COUNT exacto (caro) en tablas grandes.
   let query = supabaseAdmin.from("songs").select(SONG_COLUMNS, { count: "estimated" });
 
-  if (status === "published") query = query.eq("is_published", true);
+  if (status === "published") {
+    query = query.eq("is_published", true).not("audio_url", "eq", "");
+  }
   if (status === "draft") query = query.eq("is_published", false);
 
   if (search) query = query.ilike("title", `%${search}%`);

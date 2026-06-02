@@ -46,12 +46,11 @@ async function main() {
     try {
       await fn();
       results.push({ name, ok: true });
-      process.stdout.write(`PASS ${name}\n`);
+      process.stdout.write(`[OK] ${name}\n`);
     } catch (err) {
       const details = err instanceof Error ? err.message : String(err);
       results.push({ name, ok: false, details });
-      process.stdout.write(`FAIL ${name}\n`);
-      process.stdout.write(`${details}\n`);
+      process.stdout.write(`[FALLO] ${name}: ${details}\n`);
       throw err;
     }
   }
@@ -243,6 +242,7 @@ async function main() {
   process.stdout.write(`Playlist creada: ${playlistId}\n`);
 }
 
-main().catch(() => {
+main().catch((e) => {
+  console.error("ERROR e2e:", e);
   process.exit(1);
 });

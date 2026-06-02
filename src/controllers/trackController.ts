@@ -66,6 +66,10 @@ export async function stream(req: Request, res: Response, next: NextFunction): P
       res.status(404).json({ error: "Canción no disponible" });
       return;
     }
+    if (!track.audio_url) {
+      res.status(503).json({ error: "El audio de esta canción aún no está disponible" });
+      return;
+    }
     res.redirect(302, await storage.getStreamUrl(track.audio_url));
   } catch (err) {
     next(err);
@@ -79,6 +83,10 @@ export async function adminStream(req: Request, res: Response, next: NextFunctio
       res.status(404).json({ error: "Canción no encontrada" });
       return;
     }
+    if (!track.audio_url) {
+      res.status(503).json({ error: "El audio de esta canción aún no está disponible" });
+      return;
+    }
     res.redirect(302, await storage.getStreamUrl(track.audio_url));
   } catch (err) {
     next(err);
@@ -90,6 +98,10 @@ export async function download(req: Request, res: Response, next: NextFunction):
     const track = await trackService.getTrack(req.params.id);
     if (!track || !track.is_published) {
       res.status(404).json({ error: "Canción no disponible" });
+      return;
+    }
+    if (!track.audio_url) {
+      res.status(503).json({ error: "El audio de esta canción aún no está disponible" });
       return;
     }
     const m = track.audio_url.match(/\.([a-z0-9]+)$/i);
