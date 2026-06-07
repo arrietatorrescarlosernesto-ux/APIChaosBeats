@@ -5,13 +5,13 @@ import * as offline from "../controllers/offlineController";
 
 export const trackRoutes = Router();
 
-// --- Públicas ---
-trackRoutes.get("/", tracks.list);
-trackRoutes.get("/:id", tracks.getById);
-trackRoutes.get("/:id/stream", tracks.stream);
-trackRoutes.get("/:id/download", tracks.download);
-trackRoutes.post("/:id/play", requireAuth, tracks.play);
-trackRoutes.post("/:id/offline", requireAuth, offline.createForTrack);
+// --- Requieren administrador ---
+trackRoutes.get("/", requireAuth, requireAdmin, tracks.list);
+trackRoutes.get("/:id", requireAuth, requireAdmin, tracks.getById);
+trackRoutes.get("/:id/stream", requireAuth, requireAdmin, tracks.stream);
+trackRoutes.get("/:id/download", requireAuth, requireAdmin, tracks.download);
+trackRoutes.post("/:id/play", requireAuth, requireAdmin, tracks.play);
+trackRoutes.post("/:id/offline", requireAuth, requireAdmin, offline.createForTrack);
 
 // --- Administración (subida de música) ---
 trackRoutes.post("/", requireAuth, requireAdmin, tracks.create);

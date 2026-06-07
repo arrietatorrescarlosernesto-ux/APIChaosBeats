@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/health", (_req: Request, res: Response) => {
-  res.json({ status: "ok" });
+  res.json({ status: "ok", message: "Chaos Beats API - Acceso protegido. Se requiere autenticación." });
 });
 
 app.use("/api/tracks", trackRoutes);

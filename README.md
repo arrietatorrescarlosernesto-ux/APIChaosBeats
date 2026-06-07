@@ -51,12 +51,16 @@ export const storage: StorageService = new R2StorageService();
 
 ## Endpoints
 
+> **Todos los endpoints requieren rol de administrador** (`Authorization: Bearer <token>` + `role: admin`).
+> Sin token válido de admin → `401 Unauthorized` o `403 Forbidden`.
+> No hay acceso público ni para usuarios regulares.
+
 | Método | Ruta | Acceso | Qué hace |
 |---|---|---|---|
-| GET  | `/api/tracks?page=1&limit=20&search=...` | público | Lista paginada + búsqueda por título |
-| GET  | `/api/tracks/:id` | público | Detalle de una canción |
-| GET  | `/api/tracks/:id/stream` | público | `302` → URL firmada de R2 (reproducir) |
-| GET  | `/api/tracks/:id/download` | público | `302` → URL firmada que fuerza descarga |
+| GET  | `/api/tracks?page=1&limit=20&search=...` | admin | Lista paginada + búsqueda por título |
+| GET  | `/api/tracks/:id` | admin | Detalle de una canción |
+| GET  | `/api/tracks/:id/stream` | admin | `302` → URL firmada de R2 (reproducir) |
+| GET  | `/api/tracks/:id/download` | admin | `302` → URL firmada que fuerza descarga |
 | POST | `/api/tracks` | admin | Crea registro y devuelve `uploadUrl` (PUT directo a R2) |
 | POST | `/api/tracks/:id/publish` | admin | Marca `is_published` tras subir el archivo |
 | GET  | `/api/admin/tracks?page=1&limit=20&search=...&status=draft\|published\|all` | admin | Lista tracks (default: draft) |
@@ -106,9 +110,11 @@ Para subir desde el panel admin (React + Vite) con `PUT` a la `uploadUrl`, confi
 - **Descargas offline**: una vez en el dispositivo, las repeticiones cuestan $0 de ancho de banda.
 
 ## Seguridad
+- **Acceso exclusivo para administradores**. Todos los endpoints requieren `role: admin`.
 - Las llaves (service role, R2) viven **solo** en variables de entorno, nunca en el repo.
 - Bucket R2 **privado**: el acceso es solo por URLs firmadas de TTL corto.
-- RLS activo en `playlists`/`playlist_tracks`; el catálogo es de lectura pública.
+- RLS activo en `playlists`/`playlist_tracks`.
+- El contenido de esta API es **privado y confidencial**. Cualquier intento de acceso no autorizado será rechazado con `401 Unauthorized` o `403 Forbidden`.
 
 ## Pendiente / siguiente
 - **Playlists y favoritos**: el `schema.sql` ya los incluye. Los endpoints siguen el mismo
