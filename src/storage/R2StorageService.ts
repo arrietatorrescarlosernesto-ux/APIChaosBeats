@@ -22,7 +22,11 @@ export class R2StorageService implements StorageService {
   getStreamUrl(key: string, expiresIn = env.SIGNED_URL_TTL): Promise<string> {
     return getSignedUrl(
       this.client,
-      new GetObjectCommand({ Bucket: env.R2_BUCKET, Key: key }),
+      new GetObjectCommand({
+        Bucket: env.R2_BUCKET,
+        Key: key,
+        ResponseContentType: "audio/mpeg",
+      }),
       { expiresIn },
     );
   }

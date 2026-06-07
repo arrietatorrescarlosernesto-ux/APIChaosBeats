@@ -66,6 +66,11 @@ export const storage: StorageService = new R2StorageService();
 | GET  | `/api/admin/tracks?page=1&limit=20&search=...&status=draft\|published\|all` | admin | Lista tracks (default: draft) |
 | GET  | `/api/admin/tracks/:id` | admin | Detalle (incluye borradores) |
 | GET  | `/api/admin/tracks/:id/stream` | admin | `302` → URL firmada (preview de borrador) |
+| GET  | `/api/profile/me` | auth | Obtener perfil propio + redes sociales |
+| PATCH | `/api/profile/me` | auth | Actualizar perfil propio |
+| POST | `/api/profile/me/social-links` | auth | Agregar red social al perfil |
+| DELETE | `/api/profile/me/social-links/:id` | auth | Eliminar red social del perfil |
+| GET  | `/api/profile/:username` | público | Ver perfil público por username |
 
 ### Flujo de subida (eficiente, sin pasar bytes por el servidor)
 1. Admin → `POST /api/tracks` con `{ title, contentType, ... }` → recibe `{ track, uploadUrl }`.

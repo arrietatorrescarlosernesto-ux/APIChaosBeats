@@ -14,5 +14,5 @@ trackRoutes.post("/:id/play", requireAuth, requireAdmin, tracks.play);
 trackRoutes.post("/:id/offline", requireAuth, requireAdmin, offline.createForTrack);
 
 // --- Administración (subida de música) ---
-trackRoutes.post("/", requireAuth, requireAdmin, tracks.create);
-trackRoutes.post("/:id/publish", requireAuth, requireAdmin, tracks.publish);
+trackRoutes.post("/", requireAuth, tracks.create);
+trackRoutes.post("/:id/publish", requireAuth, tracks.publish);

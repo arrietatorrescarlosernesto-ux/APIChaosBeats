@@ -93,3 +93,58 @@ create policy "pltracks modify" on playlist_tracks
 -- Crear un bucket PRIVADO llamado "chaosbeats-audio".
 -- El acceso se da SIEMPRE por presigned URLs generadas por la API (no público).
 -- Estructura de llaves sugerida:  tracks/<uuid>.mp3
+
+-- =====================================================================
+-- Perfiles de usuario y redes sociales
+-- =====================================================================
+
+create table profiles (
+  id          uuid primary key references auth.users(id) on delete cascade,
+  username    text unique,
+  display_name text,
+  bio         text,
+  avatar_url  text,
+  location    text,
+  website     text,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create table social_links (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references profiles(id) on delete cascade,
+  platform    text not null,
+  url         text not null,
+  display_order int not null default 0,
+  created_at  timestamptz not null default now(),
+  unique(user_id, platform)
+);
+
+create index idx_profiles_username on profiles(username);
+create index idx_social_links_user on social_links(user_id);
+
+alter table profiles enable row level security;
+alter table social_links enable row level security;
+
+create policy "profiles select" on profiles for select using (true);
+create policy "profiles modify own" on profiles for all using (auth.uid() = id) with check (auth.uid() = id);
+
+create policy "social_links select" on social_links for select using (true);
+create policy "social_links modify own" on social_links for all
+  using (exists (select 1 from profiles p where p.id = user_id and p.id = auth.uid()))
+  with check (exists (select 1 from profiles p where p.id = user_id and p.id = auth.uid()));
+
+-- Trigger para crear perfil automáticamente al registrar usuario
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, username, display_name)
+  values (new.id, new.raw_user_meta_data->>'username', new.raw_user_meta_data->>'full_name')
+  on conflict (id) do nothing;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
